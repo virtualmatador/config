@@ -7,19 +7,16 @@
 
 #include <config.h>
 
-extern std::atomic<bool> reload_;
-extern std::atomic<bool> stop_;
-
 bool t01()
 {
-    reload_ = false;
-    stop_ = false;
+    the_config_ = nullptr;
     std::size_t reloads = 0;
     config the_config(".", std::chrono::seconds(0));
+    the_config.request_reload();
     auto reloader = std::make_shared<std::function<void()>>([&]()
     {
         reloads += 1;
-        stop_ = true;
+        the_config.request_stop();
     });
     the_config_->add_reloader(reloader);
     the_config.run();
@@ -32,22 +29,26 @@ bool t01()
 
 bool t02()
 {
-    reload_ = false;
-    stop_ = false;
+    the_config_ = nullptr;
     std::size_t reloads = 0;
     config the_config(".", std::chrono::seconds(0));
+    auto ticker = std::make_shared<std::function<void()>>([&]()
+    {
+        reloads += 2;
+        the_config.request_reload();
+        if (reloads > 5)
+        {
+            the_config.request_stop();
+        }
+    });
     auto reloader = std::make_shared<std::function<void()>>([&]()
     {
         reloads += 1;
-        reload_ = true;
-        if (reloads == 2)
-        {
-            stop_ = true;
-        }
     });
     the_config_->add_reloader(reloader);
+    the_config_->add_ticker(ticker, std::chrono::milliseconds(0));
     the_config.run();
-    if (reloads != 2)
+    if (reloads != 8)
     {
         return false;
     }
