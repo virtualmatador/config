@@ -1,25 +1,24 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <functional>
 #include <filesystem>
+#include <functional>
 #include <memory>
 
 #include <compose.h>
-#include <json.h>
+#include <json.hpp>
 
-class config : public jsonio::json
-{
+class config : public jsonio::json {
 public:
-    config(const std::filesystem::path& config_path, compose& the_compose);
-    ~config();
+  config(const std::filesystem::path &config_path, compose &the_compose);
+  ~config();
 
 private:
-    void read();
+  void read();
 
 private:
-    const std::filesystem::path config_path_;
-    std::shared_ptr<std::function<void()>> reloader_;
+  const std::filesystem::path config_path_;
+  std::shared_ptr<std::function<void()>> reloader_;
 };
 
-#endif //CONFIG_H
+#endif // CONFIG_H
